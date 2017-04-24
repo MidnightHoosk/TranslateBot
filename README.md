@@ -1,3 +1,1 @@
 # TranslateBot
-# TranslateBot
-# TranslateBot
