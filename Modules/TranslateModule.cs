@@ -3,14 +3,13 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace TranslateBot.Modules
 {
     public class TranslateModule : ModuleBase
     {
-        [Command("translate"), Summary("Translates using Yandex Language Auto-detect.")]
+        [Command("translate"), Summary("!translate <text to translate>")]
         public async Task Translate([Remainder, Summary("Text to translate.")] string text)
         {
             var client = new HttpClient();
@@ -37,7 +36,7 @@ namespace TranslateBot.Modules
             }
         }
 
-        [Command("random"), Summary("Displays a random number between 1 and 100.")]
+        [Command("random"), Summary("!random: displays a random number between 1 and 100")]
         async Task Random()
         {
             Random rng = new Random();

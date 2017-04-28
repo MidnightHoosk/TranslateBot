@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Reflection;
 using System.Threading.Tasks;
-using TranslateBot.Interfaces;
 
 namespace TranslateBot
 {
@@ -19,28 +18,35 @@ namespace TranslateBot
 
         public async Task Start()
         {
-            client = new DiscordSocketClient();
+            map = new DependencyMap();
             commands = new CommandService();
+            client = new DiscordSocketClient();
+
+            var serviceProvider = new ServiceCollection()
+                .AddLogging()
+                .AddSingleton(commands)
+                .AddSingleton(client)
+                .BuildServiceProvider();
 
             client.Log += Log;
 
             string token = Environment.GetEnvironmentVariable("Token");
 
-            map = new DependencyMap();
-
             await InstallCommands();
 
             await client.LoginAsync(TokenType.Bot, token);
+            
 
             await client.StartAsync();
-
+            
             await Task.Delay(-1);
         }
 
         private async Task InstallCommands()
         {
+            
             client.MessageReceived += HandleCommand;
-
+            
             await commands.AddModulesAsync(Assembly.GetEntryAssembly());
         }
 
@@ -52,6 +58,8 @@ namespace TranslateBot
             int argPos = 0;
 
             if (!(message.HasCharPrefix('!', ref argPos) || message.HasMentionPrefix(client.CurrentUser, ref argPos))) return;
+
+            if (message.Author.Username == client.CurrentUser.Username) return;
 
             var context = new CommandContext(client, message);
 
