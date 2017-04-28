@@ -35,5 +35,13 @@ namespace TranslateBot.Modules
             builder.WithDescription(helpBuilder.ToString());
             await ReplyAsync("", embed: builder);
         }
+
+        [Command("servers"), Summary("Show number of servers installed on.")]
+        public async Task Servers()
+        {
+            var servers = Context.Client.GetGuildsAsync().Result.Count;
+
+            await ReplyAsync($"Server(s) Count: {servers}");
+        }
     }
 }
