@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Reflection;
 using System.Threading.Tasks;
+using TranslateBot.Interfaces;
 
 namespace TranslateBot
 {
@@ -22,11 +23,19 @@ namespace TranslateBot
             commands = new CommandService();
             client = new DiscordSocketClient();
 
-            var serviceProvider = new ServiceCollection()
+            var services = new ServiceCollection();
+            /*
                 .AddLogging()
                 .AddSingleton(commands)
                 .AddSingleton(client)
+                .AddScoped<ITranslateService, TranslateService>()
                 .BuildServiceProvider();
+                */
+
+            services.AddSingleton(commands);
+            services.AddSingleton(client);
+            services.AddScoped<ITranslateService, TranslateService>();
+            services.BuildServiceProvider();
 
             client.Log += Log;
 
@@ -35,11 +44,17 @@ namespace TranslateBot
             await InstallCommands();
 
             await client.LoginAsync(TokenType.Bot, token);
-            
 
             await client.StartAsync();
-            
+
+            client.Connected += SetGame;
+                
             await Task.Delay(-1);
+        }
+
+        private async Task SetGame()
+        {
+            await client.SetGameAsync("-help");
         }
 
         private async Task InstallCommands()
@@ -56,17 +71,19 @@ namespace TranslateBot
             if (message == null) return;
 
             int argPos = 0;
-
-            if (!(message.HasCharPrefix('!', ref argPos) || message.HasMentionPrefix(client.CurrentUser, ref argPos))) return;
+            
+            if (!(message.HasCharPrefix('-', ref argPos) || message.HasMentionPrefix(client.CurrentUser, ref argPos))) return;
 
             if (message.Author.Username == client.CurrentUser.Username) return;
+
+            if (message.Author.IsBot) return;
 
             var context = new CommandContext(client, message);
 
             var result = await commands.ExecuteAsync(context, argPos, map);
 
             if (!result.IsSuccess)
-                await context.Channel.SendMessageAsync(result.ErrorReason);
+                Console.WriteLine(result.ErrorReason);
         }
 
         private Task Log(LogMessage msg)

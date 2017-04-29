@@ -4,15 +4,25 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
+using TranslateBot.Interfaces;
 
 namespace TranslateBot.Modules
 {
     public class TranslateModule : ModuleBase
     {
-        [Command("translate"), Summary("!translate <text to translate>")]
+        ITranslateService service;
+        public TranslateModule(ITranslateService service)
+        {
+            this.service = service;
+        }
+
+        [Command("translate"), Summary("-translate <text to translate>")]
         public async Task Translate([Remainder, Summary("Text to translate.")] string text)
         {
-            var client = new HttpClient();
+            var translation = await service.Translate(text);
+            await ReplyAsync(translation);
+
+            /*var client = new HttpClient();
             try
             {
                 client.BaseAddress = new Uri($"https://translate.yandex.net/api/v1.5/tr.json/translate?lang=en&key={Environment.GetEnvironmentVariable("translatekey")}");
@@ -33,21 +43,8 @@ namespace TranslateBot.Modules
             {
                 await ReplyAsync("Error");
                 Console.WriteLine(e.Message);
-            }
-        }
+            }*/
 
-        [Command("random"), Summary("!random: displays a random number between 1 and 100")]
-        async Task Random()
-        {
-            Random rng = new Random();
-            int random = rng.Next(0, 101);
-            await ReplyAsync($"Random number between 1 and 100: {random}");
         }
-    }
-    class TranslateResponse
-    {
-        public int code;
-        public string lang;
-        public string[] text;
     }
 }
