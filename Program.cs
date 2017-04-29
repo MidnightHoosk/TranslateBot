@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Reflection;
 using System.Threading.Tasks;
-using TranslateBot.Interfaces;
 
 namespace TranslateBot
 {
@@ -23,19 +22,12 @@ namespace TranslateBot
             commands = new CommandService();
             client = new DiscordSocketClient();
 
-            var services = new ServiceCollection();
-            /*
+            var services = new ServiceCollection()
                 .AddLogging()
                 .AddSingleton(commands)
                 .AddSingleton(client)
-                .AddScoped<ITranslateService, TranslateService>()
                 .BuildServiceProvider();
-                */
 
-            services.AddSingleton(commands);
-            services.AddSingleton(client);
-            services.AddScoped<ITranslateService, TranslateService>();
-            services.BuildServiceProvider();
 
             client.Log += Log;
 

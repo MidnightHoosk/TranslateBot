@@ -10,41 +10,44 @@ namespace TranslateBot.Modules
 {
     public class TranslateModule : ModuleBase
     {
-        ITranslateService service;
-        public TranslateModule(ITranslateService service)
-        {
-            this.service = service;
-        }
-
         [Command("translate"), Summary("-translate <text to translate>")]
         public async Task Translate([Remainder, Summary("Text to translate.")] string text)
         {
-            var translation = await service.Translate(text);
+            string translation = await TranslateApi(text);
             await ReplyAsync(translation);
+        }
 
-            /*var client = new HttpClient();
+        async Task<string> TranslateApi(string textToTranslate, string toLanguage = "")
+        {
+            string lang = (String.IsNullOrWhiteSpace(toLanguage)) ? "en" : "en-" + toLanguage;
+
+            var client = new HttpClient();
             try
             {
-                client.BaseAddress = new Uri($"https://translate.yandex.net/api/v1.5/tr.json/translate?lang=en&key={Environment.GetEnvironmentVariable("translatekey")}");
-                // HttpContent content = new StringContent(text);
+                client.BaseAddress = new Uri($"https://translate.yandex.net/api/v1.5/tr.json/translate?lang={lang}&key={Environment.GetEnvironmentVariable("translatekey")}");
+
                 var content = new FormUrlEncodedContent(new[]
                 {
-                    new KeyValuePair<string, string>("text", text)
+                    new KeyValuePair<string, string>("text", textToTranslate)
                 });
 
                 var response = await client.PostAsync("", content);
                 string result = await response.Content.ReadAsStringAsync();
                 var translation = JsonConvert.DeserializeObject<TranslateResponse>(result).text[0];
 
-                translation = translation.Replace("\"", "");
-                await ReplyAsync(translation);
-
-            } catch (HttpRequestException e)
+                return translation.Replace("\"", "");
+            }
+            catch (HttpRequestException e)
             {
-                await ReplyAsync("Error");
                 Console.WriteLine(e.Message);
-            }*/
-
+                return "Error";
+            }
         }
+    }
+    class TranslateResponse
+    {
+        public int code;
+        public string lang;
+        public string[] text;
     }
 }
